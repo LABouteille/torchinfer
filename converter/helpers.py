@@ -67,38 +67,18 @@ def get_attributes(node: TYPEDEF.ONNX_NODE) -> OrderedDict:
     raise NotImplementedError("get_attributes")
 
 def get_initializer(node: TYPEDEF.ONNX_NODE, model: TYPEDEF.ONNX_MODEL) -> Dict[Dict, Optional[Dict]]:
-    """
-    {
-       weight: {
-            name:
-            raw_data:
-            dims:
-            data_type:
-       },
-       bias: {
-            name:
-            raw_data:
-            dims:
-            data_type:
-       }   
-    }
-    """
     initializer = dict()
     initializer["weight"], initializer["bias"] = {}, {}
     
     for inp in node.input:
         for init in model.graph.initializer:
             if inp == init.name:
-                if len(init.dims) > 1:
-                    initializer["weight"]["name"] = init.name
-                    initializer["weight"]["raw_data"] = init.raw_data
-                    initializer["weight"]["dims"] = list(init.dims)
-                    initializer["weight"]["data_type"] = get_dtype(init.data_type)
-                else:
-                    initializer["bias"]["name"] = init.name
-                    initializer["bias"]["raw_data"] = init.raw_data
-                    initializer["bias"]["dims"] = list(init.dims)
-                    initializer["bias"]["data_type"] = get_dtype(init.data_type)
+                #FIXME: What happens if no bias ?
+                key = "weight" if len(init.dims) > 1 else "bias"
+                initializer[key]["name"] = init.name
+                initializer[key]["raw_data"] = init.raw_data
+                initializer[key]["dims"] = list(init.dims)
+                initializer[key]["data_type"] = get_dtype(init.data_type)
 
     return initializer
 
