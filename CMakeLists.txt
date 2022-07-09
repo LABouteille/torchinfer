@@ -22,7 +22,7 @@ if(BUILD_SANITIZE)
 endif()
 
 # Binary directories
-add_subdirectory(target)
+add_subdirectory(targets)
 
 # Status build
 message(STATUS "")
