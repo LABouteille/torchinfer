@@ -12,6 +12,8 @@ endif()
 option(BUILD_SANITIZE  "Adds sanitive flags" ON)
 option(BUILD_TEST      "Build tests" ON)
 option(BUILD_GMOCK     "Google Gmock" OFF)
+option(BUILD_ARGPARSE  "Argparse" ON)
+option(BUILD_SPDLOG    "Logger" ON)
 
 # Compilation flags
 set(OPT_FLAGS "-Ofast -march=native -flto")
@@ -21,6 +23,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3")
 
 if(BUILD_SANITIZE)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fsanitize=address")
+endif()
+
+if (BUILD_ARGPARSE)
+    add_subdirectory(third_party/argparse)
+endif()
+
+if (BUILD_SPDLOG)
+    add_subdirectory(third_party/spdlog)
 endif()
 
 # Binary directories
@@ -49,4 +60,6 @@ message(STATUS "  Build type           : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Sanitize flags       : ${BUILD_SANITIZE}")
 message(STATUS "  Build tests          : ${BUILD_TEST}")
 message(STATUS "  Google Mock          : ${BUILD_GMOCK}")
+message(STATUS "  Argparse             : ${BUILD_ARGPARSE}")
+message(STATUS "  Logger               : ${BUILD_SPDLOG}")
 message(STATUS "")
