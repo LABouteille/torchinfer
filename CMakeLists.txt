@@ -10,6 +10,8 @@ endif()
 # Options can be turned on and off by providing cmake with a -DOPTIONNAME=ON (or OFF) argument.
 #    cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SANITIZE=OFF
 option(BUILD_SANITIZE  "Adds sanitive flags" ON)
+option(BUILD_TEST      "Build tests" ON)
+option(BUILD_GMOCK     "Google Gmock" OFF)
 
 # Compilation flags
 set(OPT_FLAGS "-Ofast -march=native -flto")
@@ -24,9 +26,28 @@ endif()
 # Binary directories
 add_subdirectory(targets)
 
+if (BUILD_TEST)
+    find_package(Threads REQUIRED)
+    add_subdirectory(third_party/gtest)
+    enable_testing()
+
+    file(GLOB_RECURSE TEST 
+        torchinfer/*.cc
+        torchinfer/*.hh
+    )
+
+    add_executable(tests "tests/tests.cc")
+    target_sources(tests PRIVATE ${SRC} ${TEST})
+    target_compile_options(tests PRIVATE -Wall -Wextra -Werror -fsanitize=address)
+    target_link_options(tests PRIVATE -Wall -Wextra -Werror -fsanitize=address)
+    target_link_libraries(tests PRIVATE Threads::Threads gtest gtest_main)
+endif()
+
 # Status build
 message(STATUS "")
 message(STATUS "BUILD SUMMARY")
 message(STATUS "  Build type           : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Sanitize flags       : ${BUILD_SANITIZE}")
+message(STATUS "  Build tests          : ${BUILD_TEST}")
+message(STATUS "  Google Mock          : ${BUILD_GMOCK}")
 message(STATUS "")
