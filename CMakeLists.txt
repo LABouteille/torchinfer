@@ -37,9 +37,8 @@ if (BUILD_TEST)
     )
 
     add_executable(tests "tests/tests.cc")
-    target_sources(tests PRIVATE ${SRC} ${TEST})
+    target_sources(tests PRIVATE ${TEST})
     target_compile_options(tests PRIVATE -Wall -Wextra -Werror -fsanitize=address)
-    target_link_options(tests PRIVATE -Wall -Wextra -Werror -fsanitize=address)
     target_link_libraries(tests PRIVATE Threads::Threads gtest gtest_main)
 endif()
 
