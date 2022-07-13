@@ -1,5 +1,4 @@
 #include "io.hh"
-#include <cstdio>
 
 namespace torchinfer
 {
@@ -9,8 +8,10 @@ namespace torchinfer
         Read from numpy write_bin().
 
         file format:
-            - row (int)
-            - col (int)
+            - n (int)
+            - c (int)
+            - h (int)
+            - w (int)
             - format [int, float, double] (byte)
             - data
         */
@@ -25,12 +26,14 @@ namespace torchinfer
 
         std::ifstream file(filename, std::ios::binary);
 
-        int row = -1, col = -1;
-        file.read(reinterpret_cast<char *>(&row), sizeof(int));
-        file.read(reinterpret_cast<char *>(&col), sizeof(int));
+        int n = -1, c = -1, h = -1, w = -1;
+        file.read(reinterpret_cast<char *>(&n), sizeof(int));
+        file.read(reinterpret_cast<char *>(&c), sizeof(int));
+        file.read(reinterpret_cast<char *>(&h), sizeof(int));
+        file.read(reinterpret_cast<char *>(&w), sizeof(int));
 
-        if (row == -1 || col == -1)
-            throw std::runtime_error("read_bin: No dimensions (row, col) dumped in binary");
+        if (n == -1 || c == -1 || h == -1 || w == -1)
+            throw std::runtime_error("read_bin: No dimensions (n,c,h,w) dumped in binary");
 
         char format = '\0';
         file.read(reinterpret_cast<char *>(&format), sizeof(char));
@@ -38,10 +41,9 @@ namespace torchinfer
         if (format == '\0')
             throw std::runtime_error("read_bin: No format character dumped in binary");
 
-        std::vector<int> vec;
-        vec.resize(row * col);
+        std::vector<int> vec(n * c * h * w);
 
-        file.read(reinterpret_cast<char *>(vec.data()), row * col * format_to_byte[format]);
+        file.read(reinterpret_cast<char *>(vec.data()), n * c * h * w * format_to_byte[format]);
 
         return vec;
     }

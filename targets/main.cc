@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
     #endif
 
     argparse::ArgumentParser program("torchinfer");
-    program.add_argument("--converter")
-        .help("Converted Pytorch model")
+    program.add_argument("--input")
+        .help("Pytorch Intermediate Representation (IR)")
         .default_value(false);
 
     try
@@ -29,13 +29,8 @@ int main(int argc, char *argv[])
         std::exit(1);
     }
 
-    spdlog::info("Hello World!");
-    spdlog::debug("Debug mode activated!");
-
-    // auto model = torchinfer::Model();
-    // model.setup();
-
-    // auto vec = torchinfer::read_bin("../sandbox/array.bin");
-    // for (auto elt: vec)
-    //     printf("%d\n", elt);
+    auto filename = program.get<std::string>("--input");
+    
+    auto model = torchinfer::Model();
+    model.setup(filename);
 }

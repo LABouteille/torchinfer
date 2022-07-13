@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(torchinfer LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # Build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -19,7 +19,7 @@ option(BUILD_SPDLOG    "Logger" ON)
 set(OPT_FLAGS "-Ofast -march=native -flto")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -pthread -Werror")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OPT_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -Wno-unused-parameter")
 
 if(BUILD_SANITIZE)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
@@ -50,7 +50,7 @@ if (BUILD_TEST)
     add_executable(tests "tests/tests.cc")
     target_sources(tests PRIVATE ${TEST})
     target_compile_options(tests PRIVATE -Wall -Wextra -Werror -fsanitize=address)
-    target_link_libraries(tests PRIVATE Threads::Threads gtest gtest_main)
+    target_link_libraries(tests PRIVATE Threads::Threads gtest gtest_main spdlog)
 endif()
 
 # Status build

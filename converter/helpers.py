@@ -13,6 +13,8 @@ class OPTYPE(IntEnum):
     RELU = 1
     FLATTEN = 2
     LINEAR = 3
+    INPUT = 4
+    OUTPUT = 5
 
     def __repr__(self):
         return self.name
@@ -85,28 +87,26 @@ def get_initializer(node: TYPEDEF.ONNX_NODE, model: TYPEDEF.ONNX_MODEL) -> Dict[
 
 def get_nodes_input_output(ir: OrderedDict, model: TYPEDEF.ONNX_MODEL) -> None:        
     nb_nodes = len(model.graph.node)
-    prev_node = None
+    prev_node = 0
 
-    for i in range(nb_nodes):
-        node = model.graph.node[i]
-        
-        if i + 1 < nb_nodes:
-            next_node = model.graph.node[i+1]
-
-        if i != 0:
-            ir[node.name]["inputs"] = [prev_node.name]
-        if i != nb_nodes - 1:
-            ir[node.name]["outputs"] = [next_node.name]
-            prev_node = node
-
-    # Input of first node
-    ir[model.graph.node[0].name]["inputs"] = [inp.name for inp in model.graph.input] 
-
+    for node in range(1, nb_nodes):        
+        next_node = node+1
+        ir[node]["inputs"] = [prev_node]
+        ir[node]["outputs"] = [next_node]
+        prev_node = node
+ 
+    # Input of last node
+    ir[nb_nodes]["inputs"] = [prev_node]
     # Output of last node
-    ir[model.graph.node[-1].name]["outputs"] = [out.name for out in model.graph.output] 
+    ir[nb_nodes]["outputs"] = [nb_nodes]
 
-def get_input_nodes(model: TYPEDEF.ONNX_MODEL) -> List:
-    return [node.name for node in model.graph.input]
+def get_input_nodes(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
+    #FIXME: Only works with 1 input
+    node = model.graph.input[0]
+    return { "name": node.name, "op_type": OPTYPE.INPUT, "inputs": [], "outputs": [1]}
 
-def get_output_nodes(model: TYPEDEF.ONNX_MODEL) -> List:
-    return [node.name for node in model.graph.output]
+def get_output_nodes(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
+    #FIXME: Only works with 1 output
+    node = model.graph.output[0]
+    nb_nodes = len(model.graph.node)
+    return { "name": node.name, "op_type": OPTYPE.OUTPUT, "inputs": [nb_nodes-1], "outputs": []}
