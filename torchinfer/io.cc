@@ -2,7 +2,7 @@
 
 namespace torchinfer
 {
-    std::vector<int> read_bin(std::string filename)
+    std::vector<int> read_numpy_binary(std::string filename)
     {
         /*
         Read from numpy write_bin().
@@ -33,13 +33,13 @@ namespace torchinfer
         file.read(reinterpret_cast<char *>(&w), sizeof(int));
 
         if (n == -1 || c == -1 || h == -1 || w == -1)
-            throw std::runtime_error("read_bin: No dimensions (n,c,h,w) dumped in binary");
+            throw std::runtime_error("read_numpy_binary: No dimensions (n,c,h,w) dumped in binary");
 
         char format = '\0';
         file.read(reinterpret_cast<char *>(&format), sizeof(char));
 
         if (format == '\0')
-            throw std::runtime_error("read_bin: No format character dumped in binary");
+            throw std::runtime_error("read_numpy_binary: No format character dumped in binary");
 
         std::vector<int> vec(n * c * h * w);
 

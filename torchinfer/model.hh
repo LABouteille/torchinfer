@@ -4,6 +4,7 @@
 #include <fstream>
 #include <memory>
 
+#include "io.hh"
 #include "layers.hh"
 #include "conv2d.hh"
 
