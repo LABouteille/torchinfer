@@ -44,6 +44,9 @@ def dump_onnx_model(ir: TYPEDEF.ONNX_IR, filename, verbose=False) -> None:
     """
         - Nb_layer
         for all layers:
+            - layer_id
+            - name size
+            - name
             - op_type
             if Conv2d:
                 - nb_params
@@ -59,6 +62,13 @@ def dump_onnx_model(ir: TYPEDEF.ONNX_IR, filename, verbose=False) -> None:
 
         for i, (idx, layer) in enumerate(ir.items()):
             if verbose: print(idx, layer["name"], layer["inputs"], layer["outputs"])
+
+            # Layer id
+            f.write(struct.pack('i', idx))
+            # Name size
+            f.write(struct.pack('i', len(layer["name"])))
+            # Name
+            f.write(struct.pack(f"{len(layer['name'])}s", str.encode(layer["name"])))
 
             if layer["op_type"] == OPTYPE.CONV2D:
                 # Op type

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <fstream>
+#include <memory>
 
 #include "layers.hh"
 #include "conv2d.hh"
@@ -11,10 +12,10 @@ namespace torchinfer
     class Model {
         public:
             Model();
-            void setup(std::string filename);
-            // void summary();
+            void load(const std::string &filename);
+            void summary();
 
-            std::vector<Layers> layers;
+            std::vector<std::unique_ptr<Layers>> layers;
     };
     
 } // namespace torchinfer

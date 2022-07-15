@@ -11,9 +11,16 @@ static void read_param_scalar(std::ifstream &file, T &param, std::string param_n
 {
     file.read(reinterpret_cast<char *>(&param), sizeof(T));
     if (param == -1)
-    {
-        throw std::runtime_error("model.setup(): No " + param_name + " dumped in binary");
-    }
+        throw std::runtime_error("model.load(): No " + param_name + " dumped in binary");
+}
+
+static  void read_param_string(std::ifstream &file, std::string &param, int &size, std::string param_name)
+{
+    std::vector<char> tmp(size);
+    file.read(reinterpret_cast<char *>(tmp.data()), tmp.size() * sizeof(char));
+    param = std::string(tmp.begin(), tmp.end());
+    if (param.empty())
+        throw std::runtime_error("model.load(): No " + param_name + " dumped in binary");
 }
 
 template <typename T>
@@ -21,7 +28,7 @@ static void read_param_vector(std::ifstream &file, std::vector<T> &param, std::s
 {
     file.read(reinterpret_cast<char *>(param.data()), param.size() * sizeof(T));
     if (param.empty())
-        throw std::runtime_error("model.setup(): No " + param_name + " dumped in binary");
+        throw std::runtime_error("model.load(): No " + param_name + " dumped in binary");
 }
 
 template <typename T>
@@ -34,7 +41,7 @@ static std::vector<T> read_raw_data(std::ifstream &file, std::vector<int> &dims,
     std::vector<T> vec(size);
     file.read(reinterpret_cast<char *>(vec.data()), size * sizeof(T));
     if (vec.empty())
-        throw std::runtime_error("model.setup(): No " + param_name + " dumped in binary");
+        throw std::runtime_error("model.load(): No " + param_name + " dumped in binary");
     return vec;
 }
 
@@ -42,11 +49,14 @@ namespace torchinfer
 {
     Model::Model() {}
 
-    void Model::setup(std::string filename)
+    void Model::load(const std::string &filename)
     {
         /*
         - Nb_layer
         for all layers:
+            - layer_id
+            - name size
+            - name
             - op_type
             if Conv2d:
                 - nb_params
@@ -64,11 +74,21 @@ namespace torchinfer
         read_param_scalar<int>(file, nb_layer, GET_VARIABLE_NAME(nb_layer));
         spdlog::info("Nb layer: {}", nb_layer);
 
-        // First layer start at index 1
-        for (int i = 1; i <= nb_layer; i++)
+        for (int i = 0; i < nb_layer; i++)
         {
+            int layer_id = -1;
+            read_param_scalar<int>(file, layer_id, GET_VARIABLE_NAME(layer_id));
+            spdlog::info("Layer id: {}", layer_id);
+
+            int name_size = -1;
+            read_param_scalar<int>(file, name_size, GET_VARIABLE_NAME(name_size));
+
+            std::string name;
+            read_param_string(file, name, name_size, GET_VARIABLE_NAME(name));
+            spdlog::info("Name: {}", name);
+
             int op_type = -1;
-            read_param_scalar<int>(file, op_type, GET_VARIABLE_NAME(file));
+            read_param_scalar<int>(file, op_type, GET_VARIABLE_NAME(op_type));
 
             if (op_type == static_cast<int>(OPTYPE::CONV2D))
             {
@@ -105,26 +125,27 @@ namespace torchinfer
                     for (int i = 0; i < 4 && i < static_cast<int>(bias.size()); i++)
                         spdlog::info("\t\t {} ", bias[i]);
                     spdlog::info("\t\t ...");
-                    auto layer = Conv2D(weights, dim_weights, bias, dims_bias);
-                    layers.push_back(layer);
+
+                    auto layer = Conv2D(name, weights, dim_weights, bias, dims_bias);
+                    this->layers.push_back(std::make_unique<Layers>(layer));
                 }
                 else {
-                    auto layer = Conv2D(weights, dim_weights);
-                    layers.push_back(layer);           
+                    auto layer = Conv2D(name, weights, dim_weights);
+                    this->layers.push_back(std::make_unique<Layers>(layer));
                 }
             }
             else
-                throw std::runtime_error("model.setup(): Layer not implemented yet");
+                throw std::runtime_error("model.load(): Layer not implemented yet");
         }
     }
 
     void Model::summary()
     {
-        // spdlog::info("Model Summary:");
+        spdlog::info("Model Summary:");
 
-        // for (auto layer: layers) {
-        //     spdlog::info(layer.info());
-        // }
+        for (auto &layer: this->layers) {
+            spdlog::info(layer->info());
+        }
     }
 
 } // namespace torchinfer

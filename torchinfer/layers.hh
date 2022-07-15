@@ -1,5 +1,8 @@
 #pragma once
+
 #include <string>
+#include <vector>
+#include <sstream>
 
 namespace torchinfer
 {
@@ -15,6 +18,13 @@ namespace torchinfer
 
     class Layers {
         public:
-            Layers();
+            Layers(std::string &name_arg, std::vector<int> &dims_weights_arg, std::vector<int> &dims_bias_arg);
+            Layers(std::string &name_arg, std::vector<int> &dims_weights_arg);
+            
+            std::string info();
+            std::string name;
+            std::vector<int> dims_weights;
+            std::vector<int> dims_bias;
+
     };
 } // namespace torchinfer

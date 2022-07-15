@@ -32,5 +32,6 @@ int main(int argc, char *argv[])
     auto filename = program.get<std::string>("--input");
     
     auto model = torchinfer::Model();
-    model.setup(filename);
+    model.load(filename);
+    model.summary();
 }
