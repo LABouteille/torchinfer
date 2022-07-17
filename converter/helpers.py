@@ -98,15 +98,16 @@ def get_nodes_input_output(ir: OrderedDict, model: TYPEDEF.ONNX_MODEL) -> None:
     # Input of last node
     ir[nb_nodes]["inputs"] = [prev_node]
     # Output of last node
-    ir[nb_nodes]["outputs"] = [nb_nodes]
+    ir[nb_nodes]["outputs"] = [nb_nodes + 1]
 
 def get_input_nodes(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
     #FIXME: Only works with 1 input
     node = model.graph.input[0]
-    return { "name": node.name, "op_type": OPTYPE.INPUT, "inputs": [], "outputs": [1]}
+    dims = [dim.dim_value for dim in node.type.tensor_type.shape.dim]
+    return { "name": node.name, "op_type": OPTYPE.INPUT, "inputs": [], "outputs": [1], "dims": dims}
 
 def get_output_nodes(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
     #FIXME: Only works with 1 output
     node = model.graph.output[0]
     nb_nodes = len(model.graph.node)
-    return { "name": node.name, "op_type": OPTYPE.OUTPUT, "inputs": [nb_nodes-1], "outputs": []}
+    return { "name": node.name, "op_type": OPTYPE.OUTPUT, "inputs": [nb_nodes], "outputs": []}

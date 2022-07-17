@@ -14,8 +14,12 @@ int main(int argc, char *argv[])
     #endif
 
     argparse::ArgumentParser program("torchinfer");
-    program.add_argument("--input")
-        .help("Pytorch Intermediate Representation (IR)")
+    program.add_argument("--data")
+        .help("Input data (numpy array dumped as binary)")
+        .default_value(false);
+
+    program.add_argument("--onnx_ir")
+        .help("ONNX Intermediate Representation (IR)")
         .default_value(false);
 
     try
@@ -29,9 +33,13 @@ int main(int argc, char *argv[])
         std::exit(1);
     }
 
-    auto filename = program.get<std::string>("--input");
+    // TODO: check if proper file were given to the right param.
+    auto filename_data = program.get<std::string>("--data");
+    auto filename_onnx_ir = program.get<std::string>("--onnx_ir");
     
+    auto x = torchinfer::read_numpy_binary(filename_data);
+    spdlog::info("Input size: {}", x.size());
     auto model = torchinfer::Model();
-    model.load(filename);
+    model.load(filename_onnx_ir);
     model.summary();
 }

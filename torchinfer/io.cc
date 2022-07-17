@@ -2,7 +2,7 @@
 
 namespace torchinfer
 {
-    std::vector<int> read_numpy_binary(std::string filename)
+    std::vector<int> read_numpy_binary(const std::string &filename)
     {
         /*
         Read from numpy write_bin().

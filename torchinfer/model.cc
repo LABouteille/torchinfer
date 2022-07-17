@@ -16,6 +16,8 @@ namespace torchinfer
             - name size
             - name
             - op_type
+            if Input:
+                - dims                
             if Conv2d:
                 - nb_params
                 - dims (weight)
@@ -43,8 +45,19 @@ namespace torchinfer
             spdlog::info("Name: {}", name);
 
             auto op_type = read_scalar_from_stream<int>(file, "op_type");
+            
+            if (op_type == static_cast<int>(OPTYPE::INPUT))
+            {
+                spdlog::info("Op type: INPUT");
+                auto dims_input = read_vector_from_stream<int>(file, 4, "dims_input");
+                spdlog::info("\t- dims (input):");
+                for (auto elt : dims_input)
+                    spdlog::info("\t\t {}", elt);
 
-            if (op_type == static_cast<int>(OPTYPE::CONV2D))
+                auto layer = Inputs(name, dims_input);
+                this->layers.push_back(std::make_unique<Layers>(layer));
+            }
+            else if (op_type == static_cast<int>(OPTYPE::CONV2D))
             {
                 spdlog::info("Op type: CONV2D");
 
@@ -67,8 +80,6 @@ namespace torchinfer
                 for (auto elt : dims_bias)
                     spdlog::info("\t\t {}", elt);
 
-                std::vector<float> bias;
-
                 if (nb_params == 2)
                 {
                     auto bias = read_raw_data_from_stream<float>(file, dims_bias, "bias");
@@ -86,17 +97,21 @@ namespace torchinfer
                 }
             }
             else
-                throw std::runtime_error("model.load(): Layer not implemented yet");
+                throw std::runtime_error("model.load: Layer not implemented yet");
         }
     }
 
     void Model::summary()
     {
+        std::stringstream info;
+
         spdlog::info("Model Summary:");
 
         for (auto &layer: this->layers) {
-            spdlog::info(layer->info());
+            info << layer->info();
         }
+
+        spdlog::info(info.str());
     }
 
 } // namespace torchinfer

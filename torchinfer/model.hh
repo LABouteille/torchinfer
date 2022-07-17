@@ -6,6 +6,7 @@
 
 #include "io.hh"
 #include "layers.hh"
+#include "inputs.hh"
 #include "conv2d.hh"
 
 namespace torchinfer

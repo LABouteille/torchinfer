@@ -1,4 +1,4 @@
-from helpers import *
+from converter.helpers import *
 
 import struct
 
@@ -22,7 +22,7 @@ def parse_onnx_model(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
     ir = OrderedDict()
 
     # TODO: Need to handle input 
-    # ir[0] = get_input_nodes(model)
+    ir[0] = get_input_nodes(model)
 
     for idx, node in enumerate(model.graph.node, start=1):
         ir[idx] = {}
@@ -36,7 +36,7 @@ def parse_onnx_model(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
     get_nodes_input_output(ir, model)        
     
     # TODO: Need to handle output
-    # ir[len(model.graph.node)] = get_output_nodes(model)
+    # ir[len(model.graph.node) + 1] = get_output_nodes(model)
 
     return ir
 
@@ -48,6 +48,8 @@ def dump_onnx_model(ir: TYPEDEF.ONNX_IR, filename, verbose=False) -> None:
             - name size
             - name
             - op_type
+            if Input:
+                - dims                
             if Conv2d:
                 - nb_params
                 - dims (weight)
@@ -70,16 +72,21 @@ def dump_onnx_model(ir: TYPEDEF.ONNX_IR, filename, verbose=False) -> None:
             # Name
             f.write(struct.pack(f"{len(layer['name'])}s", str.encode(layer["name"])))
 
-            if layer["op_type"] == OPTYPE.CONV2D:
+            if layer["op_type"] == OPTYPE.INPUT:
+                # Op type
+                f.write(struct.pack('i', layer["op_type"]))
+                # Dims
+                f.write(struct.pack("i"*len(layer["dims"]), *layer["dims"]))
+            elif layer["op_type"] == OPTYPE.CONV2D:
+                # TODO: Need to write idx of input and output layer.
                 # Op type
                 f.write(struct.pack('i', layer["op_type"]))
                 # Nb params
                 f.write(struct.pack('i', len(layer["initializer"])))
                 # Weight
                 f.write(struct.pack("i"*len(layer["initializer"]["weight"]["dims"]), *layer["initializer"]["weight"]["dims"]))
-                # len = data_type * nb elements
-                weight = layer["initializer"]["weight"]["raw_data"]
-                f.write(struct.pack(f"{len(weight)}s", weight))
+                weight = layer["initializer"]["weight"]["raw_data"] 
+                f.write(struct.pack(f"{len(weight)}s", weight)) # len = data_type * nb elements
                 # Bias
                 if "bias" in layer["initializer"]:
                     f.write(struct.pack("i"*len(layer["initializer"]["bias"]["dims"]), *layer["initializer"]["bias"]["dims"]))

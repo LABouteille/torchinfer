@@ -14,7 +14,7 @@ namespace torchinfer
     }
 
     Conv2D::Conv2D(std::string &name_arg, std::vector<float> &weights_arg, std::vector<int> &dims_weights_arg)
-        : Layers(name_arg, dims_weights_arg),
+        : Layers(name_arg, dims_weights_arg, false),
           name(name_arg),
           weights(weights_arg),
           dims_weights(dims_weights_arg)
