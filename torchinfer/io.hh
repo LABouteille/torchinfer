@@ -9,8 +9,52 @@
 
 namespace torchinfer
 {
-    std::vector<float> read_numpy_binary(const std::string &filename);
-    
+    template <typename T>
+    std::vector<T> read_numpy_binary(const std::string &filename, const std::string &data_type)
+    {
+        /*
+        Read from numpy write_bin().
+
+        file format:
+            - n (int)
+            - c (int)
+            - h (int)
+            - w (int)
+            - format [int, float, double] (byte)
+            - data
+        */
+
+        std::map<std::string, char> datatype_to_format = {
+            {"int", 'i'},
+            {"float", 'f'},
+            {"double", 'd'}
+        };
+
+        std::ifstream file(filename, std::ios::binary);
+
+        int n = -1, c = -1, h = -1, w = -1;
+        file.read(reinterpret_cast<char *>(&n), sizeof(int));
+        file.read(reinterpret_cast<char *>(&c), sizeof(int));
+        file.read(reinterpret_cast<char *>(&h), sizeof(int));
+        file.read(reinterpret_cast<char *>(&w), sizeof(int));
+
+        if (n == -1 || c == -1 || h == -1 || w == -1)
+            throw std::runtime_error("read_numpy_binary: No dimensions (n,c,h,w) dumped in binary");
+
+        char format = '\0';
+        file.read(reinterpret_cast<char *>(&format), sizeof(char));
+
+        if (format == '\0')
+            throw std::runtime_error("read_numpy_binary: No format character dumped in binary");
+
+        if (datatype_to_format[data_type] != format)
+            throw std::runtime_error("read_numpy_binary: Specified data type does not match dumped data type");
+
+        std::vector<T> vec(n * c * h * w);
+        file.read(reinterpret_cast<char *>(vec.data()), n * c * h * w * sizeof(T));
+        return vec;
+    }
+
     template <typename T>
     T read_scalar_from_stream(std::ifstream &file, std::string param_name)
     {

@@ -18,10 +18,12 @@ namespace torchinfer
         OUTPUT = 5
     };
 
+    template <typename T>
     class Layers {
         public:
             Layers() = default;
             virtual ~Layers() = default;
             virtual std::string info() = 0;
+            virtual std::vector<T> forward(std::vector<T> &x) = 0;
     };
 } // namespace torchinfer

@@ -9,18 +9,20 @@
 
 int main(int argc, char *argv[])
 {
-    #if DEBUG_SPDLOG
-        spdlog::set_level(spdlog::level::debug);
-    #endif
+#if DEBUG_SPDLOG
+    spdlog::set_level(spdlog::level::debug);
+#endif
 
     argparse::ArgumentParser program("torchinfer");
     program.add_argument("--data")
         .help("Input data (numpy array dumped as binary)")
-        .default_value(false);
-
+        .required();
+    program.add_argument("--type")
+        .help("Input data type [int, float, double]")
+        .required();
     program.add_argument("--onnx_ir")
         .help("ONNX Intermediate Representation (IR)")
-        .default_value(false);
+        .required();
 
     try
     {
@@ -35,10 +37,33 @@ int main(int argc, char *argv[])
 
     // TODO: check if proper file were given to the right param.
     auto filename_data = program.get<std::string>("--data");
+    auto data_type = program.get<std::string>("--type");
     auto filename_onnx_ir = program.get<std::string>("--onnx_ir");
-    
-    auto x = torchinfer::read_numpy_binary(filename_data);
-    auto model = torchinfer::Model();
-    model.load(filename_onnx_ir);
-    model.summary();
+
+    if (data_type == "int")
+    {
+        auto x = torchinfer::read_numpy_binary<int>(filename_data, data_type);
+        auto model = torchinfer::Model<int>();
+        model.load(filename_onnx_ir);
+        model.summary();
+        model.predict(x);
+    }
+    else if (data_type == "float")
+    {
+        auto x = torchinfer::read_numpy_binary<float>(filename_data, data_type);
+        auto model = torchinfer::Model<float>();
+        model.load(filename_onnx_ir);
+        model.summary();
+        model.predict(x);
+    }
+    else if (data_type == "double")
+    {
+        auto x = torchinfer::read_numpy_binary<double>(filename_data, data_type);
+        auto model = torchinfer::Model<double>();
+        model.load(filename_onnx_ir);
+        model.summary();
+        model.predict(x);
+    }
+    else
+        throw std::runtime_error("main: Unknown data type");
 }
