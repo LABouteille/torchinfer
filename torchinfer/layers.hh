@@ -1,5 +1,6 @@
 #pragma once
 
+#include "spdlog/spdlog.h"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -19,15 +20,8 @@ namespace torchinfer
 
     class Layers {
         public:
-            Layers(std::string &name_arg, std::vector<int> &dims_weights_arg, std::vector<int> &dims_bias_arg);
-            Layers(std::string &name_arg, std::vector<int> &dims_arg, bool is_input_arg);
-            
-            std::string info();
-            std::string name;
-            std::vector<int> dims_input;
-            std::vector<int> dims_weights;
-            std::vector<int> dims_bias;
-            bool is_input;
-
+            Layers() = default;
+            virtual ~Layers() = default;
+            virtual std::string info() = 0;
     };
 } // namespace torchinfer

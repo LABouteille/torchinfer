@@ -11,7 +11,7 @@ namespace torchinfer
         Conv2D(std::string &name_arg, std::vector<float> &weights_arg, std::vector<int> &dims_weights_arg, std::vector<float> &bias_arg, std::vector<int> &dims_bias_arg);
         Conv2D(std::string &name_arg, std::vector<float> &weights_arg, std::vector<int> &dims_weights_arg);
 
-        void forward();
+        std::string info() override;
 
         std::string name;
         std::vector<float> weights;

@@ -7,7 +7,7 @@ namespace torchinfer
 {
     Model::Model() {}
 
-    void Model::load(const std::string &filename)
+    void Model::load(const std::string &filename_onnx_ir)
     {
         /*
         - Nb_layer
@@ -25,10 +25,9 @@ namespace torchinfer
                 - dims (bias)
                 - bias
         */
-
-        spdlog::info("filename: {}", filename);
-
-        std::ifstream file(filename, std::ios::binary);
+        // ONNX IR file
+        spdlog::info("filename: {}", filename_onnx_ir);
+        std::ifstream file(filename_onnx_ir, std::ios::binary);
 
         auto nb_layer = read_scalar_from_stream<int>(file, "nb_layer");
         spdlog::info("Nb layer: {}", nb_layer);
@@ -48,34 +47,32 @@ namespace torchinfer
             
             if (op_type == static_cast<int>(OPTYPE::INPUT))
             {
-                spdlog::info("Op type: INPUT");
                 auto dims_input = read_vector_from_stream<int>(file, 4, "dims_input");
+                auto layer = Inputs(name, dims_input);
+
+                spdlog::info("Op type: INPUT");
                 spdlog::info("\t- dims (input):");
-                for (auto elt : dims_input)
+                for (auto elt : layer.dims_input)
                     spdlog::info("\t\t {}", elt);
 
-                auto layer = Inputs(name, dims_input);
-                this->layers.push_back(std::make_unique<Layers>(layer));
+                this->layers.push_back(std::make_unique<Inputs>(layer));
             }
             else if (op_type == static_cast<int>(OPTYPE::CONV2D))
             {
-                spdlog::info("Op type: CONV2D");
-
                 auto nb_params = read_scalar_from_stream<int>(file, "nb_params");
-                spdlog::info("\t- nb_params: {}", nb_params);
-
                 auto dim_weights = read_vector_from_stream<int>(file, 4, "dim_weights");
+                auto weights = read_raw_data_from_stream<float>(file, dim_weights, "weights");
+                auto dims_bias = read_vector_from_stream<int>(file, 1, "dims_bias");
+            
+                spdlog::info("Op type: CONV2D");
+                spdlog::info("\t- nb_params: {}", nb_params);
                 spdlog::info("\t- dims (weights):");
                 for (auto elt : dim_weights)
                     spdlog::info("\t\t {}", elt);
-
-                auto weights = read_raw_data_from_stream<float>(file, dim_weights, "weights");
                 spdlog::info("\t- weights:");
                 for (int i = 0; i < 4 && i < static_cast<int>(weights.size()); i++)
                     spdlog::info("\t\t {} ", weights[i]);
                 spdlog::info("\t\t ...");
-
-                auto dims_bias = read_vector_from_stream<int>(file, 1, "dims_bias");
                 spdlog::info("\t- dims (bias):");
                 for (auto elt : dims_bias)
                     spdlog::info("\t\t {}", elt);
@@ -89,11 +86,11 @@ namespace torchinfer
                     spdlog::info("\t\t ...");
 
                     auto layer = Conv2D(name, weights, dim_weights, bias, dims_bias);
-                    this->layers.push_back(std::make_unique<Layers>(layer));
+                    this->layers.push_back(std::make_unique<Conv2D>(layer));
                 }
                 else {
                     auto layer = Conv2D(name, weights, dim_weights);
-                    this->layers.push_back(std::make_unique<Layers>(layer));
+                    this->layers.push_back(std::make_unique<Conv2D>(layer));
                 }
             }
             else
@@ -106,9 +103,10 @@ namespace torchinfer
         std::stringstream info;
 
         spdlog::info("Model Summary:");
+        info << std::endl;
 
         for (auto &layer: this->layers) {
-            info << layer->info();
+            info << layer->info() << std::endl;
         }
 
         spdlog::info(info.str());

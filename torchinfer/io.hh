@@ -9,7 +9,7 @@
 
 namespace torchinfer
 {
-    std::vector<int> read_numpy_binary(const std::string &filename);
+    std::vector<float> read_numpy_binary(const std::string &filename);
     
     template <typename T>
     T read_scalar_from_stream(std::ifstream &file, std::string param_name)

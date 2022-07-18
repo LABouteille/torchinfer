@@ -2,7 +2,7 @@
 
 namespace torchinfer
 {
-    std::vector<int> read_numpy_binary(const std::string &filename)
+    std::vector<float> read_numpy_binary(const std::string &filename)
     {
         /*
         Read from numpy write_bin().
@@ -40,12 +40,9 @@ namespace torchinfer
 
         if (format == '\0')
             throw std::runtime_error("read_numpy_binary: No format character dumped in binary");
-
-        std::vector<int> vec(n * c * h * w);
-
+        
+        std::vector<float> vec(n * c * h * w);
         file.read(reinterpret_cast<char *>(vec.data()), n * c * h * w * format_to_byte[format]);
-
         return vec;
     }
-
 } // namespace torchinfer

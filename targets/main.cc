@@ -38,7 +38,6 @@ int main(int argc, char *argv[])
     auto filename_onnx_ir = program.get<std::string>("--onnx_ir");
     
     auto x = torchinfer::read_numpy_binary(filename_data);
-    spdlog::info("Input size: {}", x.size());
     auto model = torchinfer::Model();
     model.load(filename_onnx_ir);
     model.summary();

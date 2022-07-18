@@ -14,7 +14,7 @@ namespace torchinfer
     class Model {
         public:
             Model();
-            void load(const std::string &filename);
+            void load(const std::string &filename_onnx_ir);
             void summary();
 
             std::vector<std::unique_ptr<Layers>> layers;
