@@ -20,7 +20,7 @@ namespace torchinfer
         void load(const std::string &filename_onnx_ir);
         void summary();
 
-        void predict(std::vector<T> &x);
+        void predict(Tensor<T> &x);
 
         std::vector<std::unique_ptr<Layers<T>>> layers;
     };
@@ -49,9 +49,18 @@ namespace torchinfer
         */
         spdlog::info("filename: {}", filename_onnx_ir);
         std::ifstream file(filename_onnx_ir, std::ios::binary);
-
+        
         auto nb_layer = read_scalar_from_stream<int>(file, "nb_layer");
         spdlog::info("Nb layer: {}", nb_layer);
+
+        if (std::is_same<T, int>::value)
+            spdlog::info("Type: {}", "INT");
+        else if (std::is_same<T, float>::value)
+            spdlog::info("Type: {}", "FLOAT");
+        else if (std::is_same<T, double>::value)
+            spdlog::info("Type: {}", "DOUBLE");
+        else
+            throw std::runtime_error("model.load: Not supported type");
 
         for (int i = 0; i < nb_layer; i++)
         {
@@ -73,7 +82,7 @@ namespace torchinfer
 
                 spdlog::info("Op type: INPUT");
                 spdlog::info("\t- dims (input):");
-                for (auto elt : layer.dims_input)
+                for (auto elt : layer.dims)
                     spdlog::info("\t\t {}", elt);
 
                 this->layers.push_back(std::make_unique<Inputs<T>>(layer));
@@ -106,12 +115,12 @@ namespace torchinfer
                         spdlog::info("\t\t {} ", bias[i]);
                     spdlog::info("\t\t ...");
 
-                    auto layer = Conv2D<T>(name, weights, dim_weights, bias, dims_bias);
+                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights), Tensor<T>(bias, dims_bias));
                     this->layers.push_back(std::make_unique<Conv2D<T>>(layer));
                 }
                 else
                 {
-                    auto layer = Conv2D<T>(name, weights, dim_weights);
+                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights));
                     this->layers.push_back(std::make_unique<Conv2D<T>>(layer));
                 }
             }
@@ -137,14 +146,18 @@ namespace torchinfer
     }
 
     template <typename T>
-    void Model<T>::predict(std::vector<T> &x)
+    void Model<T>::predict(Tensor<T> &x)
     {
         spdlog::info("Predicting...");
-        spdlog::info("Input data size: {}", x.size());
+        
+        auto input_layer = dynamic_cast<Inputs<T>*>(this->layers[0].get());
+        if (x.dims != input_layer->dims)
+            throw std::runtime_error("model.predict: Input data size does not match Input layer dims.");
 
-        auto out = this->layers[0]->forward(x);
+        spdlog::info("Input data size: [{}, {}, {}, {}]", x.dims[0], x.dims[1], x.dims[2], x.dims[3]);
 
-        for (size_t i = 1; i < this->layers.size(); i++)
+        auto out = x;
+        for (size_t i = 0; i < this->layers.size(); i++)
             out = this->layers[i]->forward(out);
     }
 } // namespace torchinfer

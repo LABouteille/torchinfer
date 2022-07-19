@@ -6,6 +6,8 @@
 #include <sstream>
 #include <stdbool.h>
 
+#include "tensor.hh"
+
 namespace torchinfer
 {
     enum class OPTYPE
@@ -24,6 +26,6 @@ namespace torchinfer
             Layers() = default;
             virtual ~Layers() = default;
             virtual std::string info() = 0;
-            virtual std::vector<T> forward(std::vector<T> &x) = 0;
+            virtual Tensor<T> forward(Tensor<T> &x) = 0;
     };
 } // namespace torchinfer
