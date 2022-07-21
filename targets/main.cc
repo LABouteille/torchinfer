@@ -6,6 +6,7 @@
 #include <torchinfer/conv2d.hh>
 #include <torchinfer/model.hh>
 #include <torchinfer/io.hh>
+#include <torchinfer/tensor.hh>
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +47,9 @@ int main(int argc, char *argv[])
         auto model = torchinfer::Model<int>();
         model.load(filename_onnx_ir);
         model.summary();
-        model.predict(x);
+        // TODO: Find a better way to specify dims of the input tensor (not manually)
+        auto input = torchinfer::Tensor<int>(x, {3, 2, 4, 4}); 
+        model.predict(input);
     }
     else if (data_type == "float")
     {
@@ -54,7 +57,8 @@ int main(int argc, char *argv[])
         auto model = torchinfer::Model<float>();
         model.load(filename_onnx_ir);
         model.summary();
-        model.predict(x);
+        auto input = torchinfer::Tensor<float>(x, {3, 2, 4, 4}); 
+        model.predict(input);
     }
     else if (data_type == "double")
     {
@@ -62,7 +66,8 @@ int main(int argc, char *argv[])
         auto model = torchinfer::Model<double>();
         model.load(filename_onnx_ir);
         model.summary();
-        model.predict(x);
+        auto input = torchinfer::Tensor<double>(x, {3, 2, 4, 4}); 
+        model.predict(input);
     }
     else
         throw std::runtime_error("main: Unknown data type");
