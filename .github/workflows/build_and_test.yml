@@ -1,0 +1,51 @@
+
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [3.8.10]
+    steps:
+      - name: Install dependancies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake
+      - uses: actions/checkout@v2
+      - name: Build submodules
+        run: |
+          cd third_party
+          git submodule init
+          git submodule update
+      - name: Build project
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release && make -j 8 -C build/
+      - name: "Set up Python ${{ matrix.python }}"
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: "Cache Python dependencies"
+        uses: actions/cache@v2
+        with:
+          # This path is specific to Ubuntu
+          path: ~/.cache/pip
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.python }}-pip-
+      - name: "Install Python dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Testing Conv2d
+        run: |
+          chmod +x ./tests/run_tests.sh
+          ./tests/run_tests.sh --is_ci
+      - name: Display structure of folder
+        run: ls -R

@@ -3,10 +3,10 @@
 #include <iostream>
 
 #include "options.hh"
-#include <torchinfer/conv2d.hh>
-#include <torchinfer/model.hh>
-#include <torchinfer/io.hh>
-#include <torchinfer/tensor.hh>
+#include <src/conv2d.hh>
+#include <src/model.hh>
+#include <src/io.hh>
+#include <src/tensor.hh>
 
 template <typename T> 
 static void display_tensor(torchinfer::Tensor<T> &out)

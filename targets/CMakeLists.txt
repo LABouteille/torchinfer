@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
 include_directories(..)
-file(GLOB SRC ../torchinfer/*.cc ../torchinfer/*.hh)
+file(GLOB SRC ../src/*.cc ../src/*.hh)
 add_executable(${PROJECT_NAME} main.cc ${SRC})
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
