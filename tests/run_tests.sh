@@ -22,22 +22,27 @@ do
     case $key in
         --is_ci)
             IS_CI=1
+            # For CI/CD github actions only
             shift # past argument
             ;;
         --gdb)
             IS_GDB=1
+            # Run binary with GDB debugger
             shift # past argument
             ;;
         --verbose)
             IS_VERBOSE=1
+            # Enable logging
             shift # past argument
             ;;
         --filter=*)
             IS_FILTER=1
+            # Filter tests by regex
             REGEX_CMD="${key#*=}"
             shift # past argument
             ;;
         --help)
+            # Help menu
             echo "Usage: run_tests.sh [--is_ci] [--gdb] [--verbose] [--filter=<regex>] [--help]"
             exit 0
             ;;
