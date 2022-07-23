@@ -12,6 +12,7 @@ endif()
 option(BUILD_SANITIZE  "Adds sanitive flags" ON)
 option(BUILD_ARGPARSE  "Argparse" ON)
 option(BUILD_SPDLOG    "Logger" ON)
+option(BUILD_BENCHMARK "Benchmark" OFF)
 
 # Compilation flags
 set(OPT_FLAGS "-Ofast -march=native -flto")
@@ -32,8 +33,14 @@ if (BUILD_SPDLOG)
     add_subdirectory(third_party/spdlog)
 endif()
 
+if (BUILD_BENCHMARK)
+    add_subdirectory(third_party/gtest)
+    add_subdirectory(third_party/gbenchmark)
+endif()
+
 # Binary directories
 add_subdirectory(targets)
+add_subdirectory(bench)
 
 # Status build
 message(STATUS "")
@@ -42,4 +49,5 @@ message(STATUS "  Build type           : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Sanitize flags       : ${BUILD_SANITIZE}")
 message(STATUS "  Argparse             : ${BUILD_ARGPARSE}")
 message(STATUS "  Logger               : ${BUILD_SPDLOG}")
+message(STATUS "  Benchmark            : ${BUILD_BENCHMARK}")
 message(STATUS "")
