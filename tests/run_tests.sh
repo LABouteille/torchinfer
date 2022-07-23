@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Only when runing tests on github action CI/CD
-if [ "$1" == "--is_ci" ]; then
-    is_ci=1
-else
-    is_ci=0
-fi
-
 RED="\e[31m"
 GREEN="\e[32m"
 ORANGE="\e[33m"
@@ -16,7 +9,45 @@ BUILD_PATH=$PWD/build
 TESTS_PATH=$PWD/tests
 TESTS_TMP_PATH=${TESTS_PATH}/tmp
 
-if [ $is_ci -eq 0 ]
+IS_CI=0 # Only when runing tests on github action CI/CD
+IS_VERBOSE=0
+IS_FILTER=0
+IS_GDB=0
+REGEX_CMD=""
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        --is_ci)
+            IS_CI=1
+            shift # past argument
+            ;;
+        --gdb)
+            IS_GDB=1
+            shift # past argument
+            ;;
+        --verbose)
+            IS_VERBOSE=1
+            shift # past argument
+            ;;
+        --filter=*)
+            IS_FILTER=1
+            REGEX_CMD="${key#*=}"
+            shift # past argument
+            ;;
+        --help)
+            echo "Usage: run_tests.sh [--is_ci] [--gdb] [--verbose] [--filter=<regex>] [--help]"
+            exit 0
+            ;;
+        *)    # unknown option
+            shift # past argument
+            ;;
+    esac
+done
+
+if [ $IS_CI -eq 0 ]
 then
 
     if [ -d ${TESTS_TMP_PATH} ] 
@@ -26,22 +57,13 @@ then
 
     mkdir ${TESTS_TMP_PATH}
 
-    if [ -d ${BUILD_PATH} ] 
-    then
-        rm -rf ${BUILD_PATH}
-    fi
-
-    mkdir ${BUILD_PATH}
-
-    # TODO: add regex as cmd line arg to filter tests per layers (one particuliar test or all test of a specific layer)
-    # TODO: Upload the build directory as artefact and reuse across CI jobs.
     cd ${BUILD_PATH}
-    cmake .. -DCMAKE_BUILD_TYPE=Release && make -j 16
+    cmake .. -DCMAKE_BUILD_TYPE=Debug && make -j 16
     cd ..
     cp ${BUILD_PATH}/targets/torchinfer ${TESTS_TMP_PATH}
 fi
 
-if [ $is_ci -eq 0 ]
+if [ $IS_CI -eq 0 ]
 then
     source ./torchinfer-env/bin/activate
 fi
@@ -49,19 +71,43 @@ fi
 mkdir -p ${TESTS_TMP_PATH}/conv2d
 conv2d_list=($(find ${TESTS_TMP_PATH}/../conv2d -name "*.py"))
 
+#Keep only line from lists that match REGEX_CMD
+if [ $IS_FILTER -eq 1 ]
+then
+    for i in "${!conv2d_list[@]}"
+    do
+        if [[ ! ${conv2d_list[$i]} =~ $REGEX_CMD ]]
+        then
+            unset "conv2d_list[$i]"
+        fi
+    done
+fi
+# TODO: add GDB flags
+
 counter=0
 
-for ((i=0; i<${#conv2d_list[@]}; i++));
+for filename in "${conv2d_list[@]}"
 do
-    filename=${conv2d_list[$i]} 
     testname=${filename#${TESTS_TMP_PATH}/../}
     testname=${testname%.py}
-
     python ${filename} --output ${TESTS_TMP_PATH}/conv2d
 
-    if [ $is_ci -eq 0 ]
+    if [ $IS_CI -eq 0 ]
     then
-        ${TESTS_TMP_PATH}/torchinfer --input ${TESTS_TMP_PATH}/${testname}_input.bin --type float --onnx_ir ${TESTS_TMP_PATH}/${testname}_ir.bin --output ${TESTS_TMP_PATH}/${testname}_output_cpp.bin
+        VERBOSE=""
+
+        if [ $IS_VERBOSE -eq 1 ]
+        then
+            VERBOSE="--verbose"
+        fi
+        
+        if [ $IS_GDB -eq 1 ]
+        then
+            gdb --args ${TESTS_TMP_PATH}/torchinfer ${VERBOSE} --input ${TESTS_TMP_PATH}/${testname}_input.bin --type float --onnx_ir ${TESTS_TMP_PATH}/${testname}_ir.bin --output ${TESTS_TMP_PATH}/${testname}_output_cpp.bin
+        else
+            ${TESTS_TMP_PATH}/torchinfer ${VERBOSE} --input ${TESTS_TMP_PATH}/${testname}_input.bin --type float --onnx_ir ${TESTS_TMP_PATH}/${testname}_ir.bin --output ${TESTS_TMP_PATH}/${testname}_output_cpp.bin
+        fi
+
     else
         ${BUILD_PATH}/targets/torchinfer --input ${TESTS_TMP_PATH}/${testname}_input.bin --type float --onnx_ir ${TESTS_TMP_PATH}/${testname}_ir.bin --output ${TESTS_TMP_PATH}/${testname}_output_cpp.bin
     fi
