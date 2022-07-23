@@ -11,7 +11,7 @@ if __name__ == "__main__":
     array_py = read_bin(args.py)
     array_cpp = read_bin(args.cpp)
 
-    if np.allclose(array_py, array_cpp):
+    if np.allclose(array_py, array_cpp, rtol=0, atol=1e-5):
         exit(0)
     else:
         exit(1)

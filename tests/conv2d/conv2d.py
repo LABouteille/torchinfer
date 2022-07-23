@@ -1,11 +1,13 @@
 import torch
 from converter.converter import parse_onnx_model, dump_onnx_model
-from tests.helpers import write_bin, onnx_check_model
+from tests.helpers import write_bin, onnx_check_model, seed_everything
 import torch.onnx
 import onnx
 import argparse
 
 if __name__ == "__main__":
+    seed_everything(seed=42)
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=str, required=True, help="Output directory")
     args = parser.parse_args()

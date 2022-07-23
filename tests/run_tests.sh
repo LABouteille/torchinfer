@@ -132,9 +132,13 @@ nb_tests=${#conv2d_list[@]}
 
 if [ $counter -eq $nb_tests ]
 then
+    echo -e "${GREEN}=================${END_COLOR}"
     echo -e "${GREEN}${counter}/${nb_tests} tests passed${END_COLOR}"
+    echo -e "${GREEN}=================${END_COLOR}"
     exit 0
 else
+    echo -e "${ORANGE}================${END_COLOR}"
     echo -e "${ORANGE}${counter}/${nb_tests} tests passed${END_COLOR}"
+    echo -e "${ORANGE}================${END_COLOR}"
     exit 1
 fi
