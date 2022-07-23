@@ -20,6 +20,7 @@ namespace torchinfer
         Tensor<T> weights;
         Tensor<T> bias;
         std::vector<int> strides;
+        Tensor<T> out;
     };
 
     template <typename T>
@@ -68,11 +69,6 @@ namespace torchinfer
         int out_height = std::ceil(((height - kernel_height) / strides[0]) + 1);
         int out_width = std::ceil(((width - kernel_width) / strides[1]) + 1);
 
-        Tensor<T> out;
-        out.dims = {batch, nb_filters, out_height, out_width};
-        // TODO: Find a better way to do this
-        out.data.assign(batch * nb_filters * out_height * out_width, (T)0);
-        
         for (int n = 0; n < batch; n++)
         {
             auto batch_offset_x = n * (width * height * channel);
@@ -103,13 +99,13 @@ namespace torchinfer
                                 }
                             }
                         }
-                        out[batch_offset_out + filter_offset_out + i * out_width + j] = val + bias[f];
+                        this->out[batch_offset_out + filter_offset_out + i * out_width + j] = val + bias[f];
                     }
                 }
             }
         }
 
-        return out;
+        return this->out;
     }
 
 } // namespace torchinfer

@@ -48,7 +48,7 @@ namespace torchinfer
                 - dims (bias)
                 - bias
         */
-
+        // Load filename
         if (verbose)
             spdlog::info("filename: {}", filename_onnx_ir);
         std::ifstream file(filename_onnx_ir, std::ios::binary);
@@ -109,7 +109,6 @@ namespace torchinfer
                 auto dim_weights = read_vector_from_stream<int>(file, 4, "dim_weights");
                 auto weights = read_raw_data_from_stream<T>(file, dim_weights, "weights");
                 auto strides = read_vector_from_stream<int>(file, 2, "strides");
-                
                 if (verbose)
                 {
                     spdlog::info("Op type: CONV2D");
@@ -153,6 +152,45 @@ namespace torchinfer
             }
             else
                 throw std::runtime_error("model.load: Layer not implemented yet");
+        }
+
+        // Setup layers output dims/data of layers
+        auto ptr = this->layers[0].get();
+
+        for (int i = 1; i < static_cast<int>(this->layers.size()); i++)
+        {
+            if (auto layer = dynamic_cast<Conv2D<T>*>(this->layers[i].get()))
+            {
+                int batch,  height, width;
+
+                if (auto prev_layer = dynamic_cast<Inputs<T>*>(ptr)) {
+                    batch = prev_layer->dims[0];
+                    height = prev_layer->dims[2];
+                    width = prev_layer->dims[3];
+                }
+                else if (auto prev_layer = dynamic_cast<Conv2D<T>*>(ptr)) {
+                    batch = prev_layer->out.dims[0];
+                    height = prev_layer->out.dims[2];
+                    width = prev_layer->out.dims[3];
+                }
+                else
+                    throw std::runtime_error("model.load: Layer not implemented yet");
+
+
+                int nb_filters = layer->weights.dims[0];
+                int kernel_height = layer->weights.dims[2];
+                int kernel_width = layer->weights.dims[3];
+
+                int out_height = std::ceil(((height - kernel_height) / layer->strides[0]) + 1);
+                int out_width = std::ceil(((width - kernel_width) / layer->strides[1]) + 1);
+
+                layer->out.dims = {batch, nb_filters, out_height, out_width};
+                layer->out.data.assign(batch * nb_filters * out_height * out_width, (T)0);
+            }
+            else
+                continue;
+
+            ptr = this->layers[i].get();
         }
     }
 
