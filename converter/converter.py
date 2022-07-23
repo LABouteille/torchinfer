@@ -12,7 +12,6 @@ def parse_onnx_model(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
             inputs: 
             outputs: List
             initializer: Dict
-            attributes: {}
             data_layout: Union(NCHW, NHWC)
         }
     }
@@ -21,7 +20,6 @@ def parse_onnx_model(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
     """
     ir = OrderedDict()
 
-    # TODO: Need to handle input 
     ir[0] = get_input_nodes(model)
 
     for idx, node in enumerate(model.graph.node, start=1):
@@ -29,7 +27,6 @@ def parse_onnx_model(model: TYPEDEF.ONNX_MODEL) -> OrderedDict:
         ir[idx]["name"] = node.name
         ir[idx]["op_type"] = get_optype(node)
         ir[idx]["initializer"] = get_initializer(node, model)
-        ir[idx]["attributes"] = None
         ir[idx]["data_layout"] = None
 
     # Get inputs and outputs of each intermediate nodes.
@@ -54,6 +51,7 @@ def dump_onnx_model(ir: TYPEDEF.ONNX_IR, filename, verbose=False) -> None:
                 - nb_params
                 - dims (weight)
                 - weight
+                    - strides
                 - dims (bias)
                 - bias
     """
@@ -81,12 +79,19 @@ def dump_onnx_model(ir: TYPEDEF.ONNX_IR, filename, verbose=False) -> None:
                 # TODO: Need to write idx of input and output layer.
                 # Op type
                 f.write(struct.pack('i', layer["op_type"]))
+                
                 # Nb params
                 f.write(struct.pack('i', (layer["initializer"]["weight"] != {}) + (layer["initializer"]["bias"] != {})))
+                
                 # Weight
+                ## Dims
                 f.write(struct.pack("i"*len(layer["initializer"]["weight"]["dims"]), *layer["initializer"]["weight"]["dims"]))
+                # data
                 weight = layer["initializer"]["weight"]["raw_data"] 
                 f.write(struct.pack(f"{len(weight)}s", weight)) # len = data_type * nb elements
+                ## strides
+                f.write(struct.pack("i"*len(layer["initializer"]["weight"]["strides"]), *layer["initializer"]["weight"]["strides"]))
+                
                 # Bias
                 if "bias" in layer["initializer"] and layer["initializer"]["bias"] != {}:
                     f.write(struct.pack("i"*len(layer["initializer"]["bias"]["dims"]), *layer["initializer"]["bias"]["dims"]))

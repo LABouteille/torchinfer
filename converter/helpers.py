@@ -65,8 +65,12 @@ def get_optype(node: TYPEDEF.ONNX_NODE) -> OPTYPE:
     else:
         raise NotImplementedError("get_optype: Operator type not implemented yet.")    
 
-def get_attributes(node: TYPEDEF.ONNX_NODE) -> OrderedDict:
-    raise NotImplementedError("get_attributes")
+def get_attributes(node: TYPEDEF.ONNX_NODE, name: str) -> OrderedDict:
+    for attr in node.attribute:
+        if name == "strides" and attr.name == name:
+            return attr.ints
+        elif name == "pads" and attr.name == name:
+            raise NotImplementedError("get_attributes: Attribute 'pads' not implemented yet.")
 
 def get_initializer(node: TYPEDEF.ONNX_NODE, model: TYPEDEF.ONNX_MODEL) -> Dict[Dict, Optional[Dict]]:
     initializer = dict()
@@ -81,6 +85,8 @@ def get_initializer(node: TYPEDEF.ONNX_NODE, model: TYPEDEF.ONNX_MODEL) -> Dict[
                 initializer[key]["raw_data"] = init.raw_data
                 initializer[key]["dims"] = list(init.dims)
                 initializer[key]["data_type"] = get_dtype(init.data_type)
+                if key == "weight":
+                    initializer[key]["strides"] = get_attributes(node, "strides")
 
     return initializer
 

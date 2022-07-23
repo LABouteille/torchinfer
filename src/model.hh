@@ -44,6 +44,7 @@ namespace torchinfer
                 - nb_params
                 - dims (weight)
                 - weight
+                    - strides
                 - dims (bias)
                 - bias
         */
@@ -107,7 +108,8 @@ namespace torchinfer
                 auto nb_params = read_scalar_from_stream<int>(file, "nb_params");
                 auto dim_weights = read_vector_from_stream<int>(file, 4, "dim_weights");
                 auto weights = read_raw_data_from_stream<T>(file, dim_weights, "weights");
-
+                auto strides = read_vector_from_stream<int>(file, 2, "strides");
+                
                 if (verbose)
                 {
                     spdlog::info("Op type: CONV2D");
@@ -119,6 +121,9 @@ namespace torchinfer
                     for (int i = 0; i < 4 && i < static_cast<int>(weights.size()); i++)
                         spdlog::info("\t\t {} ", weights[i]);
                     spdlog::info("\t\t ...");
+                    spdlog::info("\t- strides:");
+                    for (auto elt : strides)
+                        spdlog::info("\t\t {}", elt);
                 }
 
                 if (nb_params == 2)
@@ -137,12 +142,12 @@ namespace torchinfer
                         spdlog::info("\t\t ...");
                     }
 
-                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights), Tensor<T>(bias, dims_bias));
+                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights), Tensor<T>(bias, dims_bias), strides);
                     this->layers.push_back(std::make_unique<Conv2D<T>>(layer));
                 }
                 else
                 {
-                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights));
+                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights), strides);
                     this->layers.push_back(std::make_unique<Conv2D<T>>(layer));
                 }
             }

@@ -10,8 +10,8 @@ namespace torchinfer
     class Conv2D : public Layers<T>
     {
     public:
-        Conv2D(std::string &name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg);
-        Conv2D(std::string &name_arg, Tensor<T> weights_arg);
+        Conv2D(std::string &name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg, std::vector<int> strides_arg);
+        Conv2D(std::string &name_arg, Tensor<T> weights_arg, std::vector<int> strides_arg);
 
         std::string info() override;
         Tensor<T> forward(Tensor<T> &x) override;
@@ -19,20 +19,23 @@ namespace torchinfer
         std::string name;
         Tensor<T> weights;
         Tensor<T> bias;
+        std::vector<int> strides;
     };
 
     template <typename T>
-    Conv2D<T>::Conv2D(std::string &name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg)
+    Conv2D<T>::Conv2D(std::string &name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg, std::vector<int> strides_arg)
         : name(name_arg),
           weights(weights_arg),
-          bias(bias_arg)
+          bias(bias_arg),
+          strides(strides_arg)
     {
     }
 
     template <typename T>
-    Conv2D<T>::Conv2D(std::string &name_arg, Tensor<T> weights_arg)
+    Conv2D<T>::Conv2D(std::string &name_arg, Tensor<T> weights_arg, std::vector<int> strides_arg)
         : name(name_arg),
-          weights(weights_arg)
+          weights(weights_arg),
+          strides(strides_arg)
     {
         this->bias.dims = {this->weights.dims[0]};
         this->bias.data.assign(this->weights.dims[0], (T)0);
@@ -52,36 +55,37 @@ namespace torchinfer
     Tensor<T> Conv2D<T>::forward(Tensor<T> &x)
     {
         // TODO: stride + padding (C++ and Python converter)
-        auto batch = x.dims[0];
-        auto channel = x.dims[1];
-        auto height = x.dims[2];
-        auto width = x.dims[3];
+        int batch = x.dims[0];
+        int channel = x.dims[1];
+        int height = x.dims[2];
+        int width = x.dims[3];
 
-        auto kernel_height = weights.dims[2];
-        auto kernel_width = weights.dims[3];
-    
-        auto nb_filters = weights.dims[0];
-        auto out_height = (height - kernel_height + 1);
-        auto out_width = (width - kernel_width + 1);
+        int kernel_height = weights.dims[2];
+        int kernel_width = weights.dims[3];
+
+        //TODO: Implement padding
+        int nb_filters = weights.dims[0];
+        int out_height = std::ceil(((height - kernel_height) / strides[0]) + 1);
+        int out_width = std::ceil(((width - kernel_width) / strides[1]) + 1);
 
         Tensor<T> out;
         out.dims = {batch, nb_filters, out_height, out_width};
         // TODO: Find a better way to do this
         out.data.assign(batch * nb_filters * out_height * out_width, (T)0);
-
+        
         for (int n = 0; n < batch; n++)
         {
             auto batch_offset_x = n * (width * height * channel);
             auto batch_offset_out = n * (out_width * out_height * nb_filters);
-                
+
             for (int f = 0; f < nb_filters; f++)
             {
                 auto filter_offset_kernel = f * (kernel_width * kernel_height * weights.dims[1]);
                 auto filter_offset_out = f * (out_width * out_height);
 
-                for (int i = 0; i < out_height; i++)
+                for (int i = 0; i < out_height; i+=1)
                 {
-                    for (int j = 0; j < out_width; j++)
+                    for (int j = 0; j < out_width; j+=1)
                     {
                         T val = 0;
 
@@ -94,15 +98,12 @@ namespace torchinfer
                                     auto channel_offset_x = c * (width * height);
                                     auto channel_offset_kernel = c * (kernel_width * kernel_height);
 
-                                    auto offset_x = batch_offset_x + channel_offset_x + (k_i + i) * width + (k_j + j);
-                                    auto offset_kernel = filter_offset_kernel + channel_offset_kernel + k_i * kernel_width + k_j;
-
-                                    val += x[offset_x] * weights[offset_kernel];
+                                    val += x[batch_offset_x + channel_offset_x + (k_i + i * strides[0]) * width + (k_j + j * strides[1])] * \
+                                           weights[filter_offset_kernel + channel_offset_kernel + k_i * kernel_width + k_j];
                                 }
                             }
                         }
-                        auto offset_out = batch_offset_out + filter_offset_out + i * out_width + j;
-                        out[offset_out] = val + bias[f];
+                        out[batch_offset_out + filter_offset_out + i * out_width + j] = val + bias[f];
                     }
                 }
             }
