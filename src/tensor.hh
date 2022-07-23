@@ -11,8 +11,10 @@ namespace torchinfer
         Tensor() = default;
         Tensor(std::vector<T> &data_arg, std::vector<int> dims_arg);
 
-        T &operator[](int idx); // Writing
+        T &operator[](int idx);      // Writing
         T operator[](int idx) const; // Reading
+
+        std::string to_string() const;
 
         std::vector<T> data;
         std::vector<int> dims;
@@ -35,6 +37,38 @@ namespace torchinfer
     T Tensor<T>::operator[](int idx) const
     {
         return data[idx];
+    }
+
+    template <typename T>
+    std::string Tensor<T>::to_string() const
+    {
+        int batch = this->dims[0];
+        int channel = this->dims[1];
+        int height = this->dims[2];
+        int width = this->dims[3];
+        
+        std::stringstream ss;
+        
+        ss << std::endl;
+
+        for (int n = 0; n < batch; n++)
+        {
+            for (int c = 0; c < channel; c++)
+            {
+                for (int i = 0; i < height; i++)
+                {
+                    for (int j = 0; j < width; j++)
+                    {
+                        ss << this->data[n * channel * height * width + c * height * width + i * width + j] << " ";
+                    }
+                    ss << std::endl;
+                }
+                ss << std::endl;
+            }
+            ss << std::endl;
+        }
+
+        return ss.str();
     }
 
 } // namespace torchinfer

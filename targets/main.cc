@@ -8,28 +8,6 @@
 #include <src/io.hh>
 #include <src/tensor.hh>
 
-template <typename T> 
-static void display_tensor(torchinfer::Tensor<T> &out)
-{
-    std::cout << "Display value of out.data ... " << std::endl;
-
-    for (int i = 0; i < out.dims[0]; i++)
-    {
-        for (int j = 0; j < out.dims[1]; j++)
-        {
-            for (int k = 0; k < out.dims[2]; k++)
-            {
-                for (int l = 0; l < out.dims[3]; l++)
-                {
-                    std::cout << out[i * out.dims[1] * out.dims[2] * out.dims[3] + j * out.dims[2] * out.dims[3] + k * out.dims[3] + l] << " ";
-                }
-                std::cout << std::endl;
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-    }
-}
 
 int main(int argc, char *argv[])
 {
@@ -87,7 +65,7 @@ int main(int argc, char *argv[])
         auto out = model.predict(input);
         
         if (verbose)
-            display_tensor<int>(out);
+            spdlog::info("Output: {}", out.to_string());
 
         torchinfer::write_numpy_binary<int>(out, filename_output);
 
@@ -106,7 +84,7 @@ int main(int argc, char *argv[])
         auto out = model.predict(input);
         
         if (verbose)
-            display_tensor<float>(out);
+            spdlog::info("Output: {}", out.to_string());
         
         torchinfer::write_numpy_binary<float>(out, filename_output);
     }
@@ -124,7 +102,7 @@ int main(int argc, char *argv[])
         auto out = model.predict(input);
 
         if (verbose)
-            display_tensor<double>(out);
+            spdlog::info("Output: {}", out.to_string());
 
         torchinfer::write_numpy_binary<double>(out, filename_output);
     }

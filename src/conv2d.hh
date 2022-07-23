@@ -68,7 +68,6 @@ namespace torchinfer
         out.dims = {batch, nb_filters, out_height, out_width};
         // TODO: Find a better way to do this
         out.data.assign(batch * nb_filters * out_height * out_width, 0.);
-        std::cout << "out: " << out.dims[0] << " " << out.dims[1] << " " << out.dims[2] << " " << out.dims[3] << std::endl;
 
         for (int n = 0; n < batch; n++)
         {
@@ -108,25 +107,6 @@ namespace torchinfer
                 }
             }
         }
-
-        std::cout << "Display value of out.data ... " << std::endl;
-        for (int i = 0; i < out.dims[0]; i++)
-        {
-            for (int j = 0; j < out.dims[1]; j++)
-            {
-                for (int k = 0; k < out.dims[2]; k++)
-                {
-                    for (int l = 0; l < out.dims[3]; l++)
-                    {
-                        std::cout << out[i * out.dims[1] * out.dims[2] * out.dims[3] + j * out.dims[2] * out.dims[3] + k * out.dims[3] + l] << " ";
-                    }
-                    std::cout << std::endl;
-                }
-                std::cout << std::endl;
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
 
         return out;
     }

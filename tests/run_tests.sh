@@ -13,7 +13,8 @@ ORANGE="\e[33m"
 END_COLOR="\e[0m"
 
 BUILD_PATH=$PWD/build
-TESTS_TMP_PATH=$PWD/tests/tmp
+TESTS_PATH=$PWD/tests
+TESTS_TMP_PATH=${TESTS_PATH}/tmp
 
 if [ $is_ci -eq 0 ]
 then
@@ -65,7 +66,7 @@ do
         ${BUILD_PATH}/targets/torchinfer --input ${TESTS_TMP_PATH}/${testname}_input.bin --type float --onnx_ir ${TESTS_TMP_PATH}/${testname}_ir.bin --output ${TESTS_TMP_PATH}/${testname}_output_cpp.bin
     fi
     
-    diff ${TESTS_TMP_PATH}/${testname}_output_py.bin ${TESTS_TMP_PATH}/${testname}_output_cpp.bin
+    python ${TESTS_PATH}/diff.py --py ${TESTS_TMP_PATH}/${testname}_output_py.bin --cpp ${TESTS_TMP_PATH}/${testname}_output_cpp.bin
 
     if [ $? -eq 0 ]
     then
@@ -81,6 +82,8 @@ nb_tests=${#conv2d_list[@]}
 if [ $counter -eq $nb_tests ]
 then
     echo -e "${GREEN}${counter}/${nb_tests} tests passed${END_COLOR}"
+    exit 0
 else
     echo -e "${ORANGE}${counter}/${nb_tests} tests passed${END_COLOR}"
+    exit 1
 fi
