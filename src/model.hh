@@ -52,15 +52,16 @@ namespace torchinfer
             spdlog::info("filename: {}", filename_onnx_ir);
         std::ifstream file(filename_onnx_ir, std::ios::binary);
 
-        if(!file.is_open())
+        if (!file.is_open())
             spdlog::error("model.load: file not opened");
 
         auto nb_layer = read_scalar_from_stream<int>(file, "nb_layer");
-        
+
         if (verbose)
             spdlog::info("Nb layer: {}", nb_layer);
 
-        if (verbose) {
+        if (verbose)
+        {
             if (std::is_same<T, int>::value)
                 spdlog::info("Type: {}", "INT");
             else if (std::is_same<T, float>::value)
@@ -90,7 +91,7 @@ namespace torchinfer
             {
                 auto dims_input = read_vector_from_stream<int>(file, 4, "dims_input");
                 auto layer = Inputs<T>(name, dims_input);
-                
+
                 if (verbose)
                 {
                     spdlog::info("Op type: INPUT");
@@ -106,7 +107,6 @@ namespace torchinfer
                 auto nb_params = read_scalar_from_stream<int>(file, "nb_params");
                 auto dim_weights = read_vector_from_stream<int>(file, 4, "dim_weights");
                 auto weights = read_raw_data_from_stream<T>(file, dim_weights, "weights");
-                auto dims_bias = read_vector_from_stream<int>(file, 1, "dims_bias");
 
                 if (verbose)
                 {
@@ -119,17 +119,18 @@ namespace torchinfer
                     for (int i = 0; i < 4 && i < static_cast<int>(weights.size()); i++)
                         spdlog::info("\t\t {} ", weights[i]);
                     spdlog::info("\t\t ...");
-                    spdlog::info("\t- dims (bias):");
-                    for (auto elt : dims_bias)
-                        spdlog::info("\t\t {}", elt);
                 }
 
                 if (nb_params == 2)
                 {
+                    auto dims_bias = read_vector_from_stream<int>(file, 1, "dims_bias");
                     auto bias = read_raw_data_from_stream<T>(file, dims_bias, "bias");
-                    
+
                     if (verbose)
                     {
+                        spdlog::info("\t- dims (bias):");
+                        for (auto elt : dims_bias)
+                            spdlog::info("\t\t {}", elt);
                         spdlog::info("\t- bias:");
                         for (int i = 0; i < 4 && i < static_cast<int>(bias.size()); i++)
                             spdlog::info("\t\t {} ", bias[i]);
@@ -169,7 +170,7 @@ namespace torchinfer
     template <typename T>
     Tensor<T> Model<T>::predict(Tensor<T> &x)
     {
-        auto input_layer = dynamic_cast<Inputs<T>*>(this->layers[0].get());
+        auto input_layer = dynamic_cast<Inputs<T> *>(this->layers[0].get());
         if (x.dims != input_layer->dims)
             throw std::runtime_error("model.predict: Input data size does not match Input layer dims.");
 

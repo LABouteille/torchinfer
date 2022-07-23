@@ -34,6 +34,8 @@ namespace torchinfer
         : name(name_arg),
           weights(weights_arg)
     {
+        this->bias.dims = {this->weights.dims[0]};
+        this->bias.data.assign(this->weights.dims[0], (T)0);
     }
 
     template <typename T>
@@ -49,8 +51,6 @@ namespace torchinfer
     template <typename T>
     Tensor<T> Conv2D<T>::forward(Tensor<T> &x)
     {
-        spdlog::info("Forward conv2D");
-
         // TODO: stride + padding (C++ and Python converter)
         auto batch = x.dims[0];
         auto channel = x.dims[1];
@@ -67,7 +67,7 @@ namespace torchinfer
         Tensor<T> out;
         out.dims = {batch, nb_filters, out_height, out_width};
         // TODO: Find a better way to do this
-        out.data.assign(batch * nb_filters * out_height * out_width, 0.);
+        out.data.assign(batch * nb_filters * out_height * out_width, (T)0);
 
         for (int n = 0; n < batch; n++)
         {

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     filename = __file__.split('/')[-1][:-3]
 
     x = torch.arange(batch*in_channels*height*width, dtype=torch.float).reshape(batch, in_channels, height, width)
-    model = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=True, dtype=torch.float)
+    model = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False, dtype=torch.float)
     model = model.cpu()
     x = x.cpu()
     out = model(x)
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     torch.onnx.export(model,
                     x,
-                    args.output + "/" + "conv2d_bias.onnx",
+                    args.output + "/" + "conv2d.onnx",
                     export_params=True,
                     opset_version=13,
                     do_constant_folding=True,
@@ -37,8 +37,8 @@ if __name__ == "__main__":
                     output_names = ['output']
                     )
 
-    model_onnx = onnx.load(args.output + "/" + "conv2d_bias.onnx")
-    onnx_check_model(model_onnx, args.output + "/" + "conv2d_bias")
+    model_onnx = onnx.load(args.output + "/" + "conv2d.onnx")
+    onnx_check_model(model_onnx, args.output + "/" + "conv2d")
     ir = parse_onnx_model(model_onnx)
     dump_onnx_model(ir, args.output + "/" + filename + "_ir.bin", verbose=False)
     write_bin(args.output + "/" + filename + "_output_py.bin", out.detach().numpy())

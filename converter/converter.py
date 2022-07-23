@@ -82,13 +82,13 @@ def dump_onnx_model(ir: TYPEDEF.ONNX_IR, filename, verbose=False) -> None:
                 # Op type
                 f.write(struct.pack('i', layer["op_type"]))
                 # Nb params
-                f.write(struct.pack('i', len(layer["initializer"])))
+                f.write(struct.pack('i', (layer["initializer"]["weight"] != {}) + (layer["initializer"]["bias"] != {})))
                 # Weight
                 f.write(struct.pack("i"*len(layer["initializer"]["weight"]["dims"]), *layer["initializer"]["weight"]["dims"]))
                 weight = layer["initializer"]["weight"]["raw_data"] 
                 f.write(struct.pack(f"{len(weight)}s", weight)) # len = data_type * nb elements
                 # Bias
-                if "bias" in layer["initializer"]:
+                if "bias" in layer["initializer"] and layer["initializer"]["bias"] != {}:
                     f.write(struct.pack("i"*len(layer["initializer"]["bias"]["dims"]), *layer["initializer"]["bias"]["dims"]))
                     bias = layer["initializer"]["bias"]["raw_data"]
                     f.write(struct.pack(f"{len(bias)}s", bias))

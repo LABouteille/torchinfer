@@ -38,7 +38,6 @@ namespace torchinfer
     template <typename T>
     Tensor<T> Inputs<T>::forward(Tensor<T> &x)
     {
-        spdlog::info("Forward inputs");
         return x;
     }
 } // namespace torchinfer
