@@ -66,8 +66,8 @@ namespace torchinfer
 
         //TODO: Implement padding
         int nb_filters = weights.dims[0];
-        int out_height = std::ceil(((height - kernel_height) / strides[0]) + 1);
-        int out_width = std::ceil(((width - kernel_width) / strides[1]) + 1);
+        int out_height = std::floor(((height - kernel_height) / strides[0]) + 1);
+        int out_width = std::floor(((width - kernel_width) / strides[1]) + 1);
 
         for (int n = 0; n < batch; n++)
         {

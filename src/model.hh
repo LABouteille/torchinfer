@@ -186,14 +186,14 @@ namespace torchinfer
                     width = prev_layer->out.dims[3];
                 }
                 else
-                    throw std::runtime_error("model.load: Layer not implemented yet");
+                    throw std::runtime_error("model.compile: Layer not implemented yet");
 
                 int nb_filters = layer->weights.dims[0];
                 int kernel_height = layer->weights.dims[2];
                 int kernel_width = layer->weights.dims[3];
 
-                int out_height = std::ceil(((height - kernel_height) / layer->strides[0]) + 1);
-                int out_width = std::ceil(((width - kernel_width) / layer->strides[1]) + 1);
+                int out_height = std::floor(((height - kernel_height) / layer->strides[0]) + 1);
+                int out_width = std::floor(((width - kernel_width) / layer->strides[1]) + 1);
 
                 layer->out.dims = {batch, nb_filters, out_height, out_width};
                 layer->out.data.assign(batch * nb_filters * out_height * out_width, (T)0);
