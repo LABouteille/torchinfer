@@ -10,8 +10,8 @@ namespace torchinfer
     class Conv2D : public Layers<T>
     {
     public:
-        Conv2D(std::string &name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg, std::vector<int> strides_arg);
-        Conv2D(std::string &name_arg, Tensor<T> weights_arg, std::vector<int> strides_arg);
+        Conv2D(std::string name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg, std::vector<int> strides_arg);
+        Conv2D(std::string name_arg, Tensor<T> weights_arg, std::vector<int> strides_arg);
 
         std::string info() override;
         Tensor<T> forward(Tensor<T> &x) override;
@@ -24,7 +24,7 @@ namespace torchinfer
     };
 
     template <typename T>
-    Conv2D<T>::Conv2D(std::string &name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg, std::vector<int> strides_arg)
+    Conv2D<T>::Conv2D(std::string name_arg, Tensor<T> weights_arg, Tensor<T> bias_arg, std::vector<int> strides_arg)
         : name(name_arg),
           weights(weights_arg),
           bias(bias_arg),
@@ -33,7 +33,7 @@ namespace torchinfer
     }
 
     template <typename T>
-    Conv2D<T>::Conv2D(std::string &name_arg, Tensor<T> weights_arg, std::vector<int> strides_arg)
+    Conv2D<T>::Conv2D(std::string name_arg, Tensor<T> weights_arg, std::vector<int> strides_arg)
         : name(name_arg),
           weights(weights_arg),
           strides(strides_arg)

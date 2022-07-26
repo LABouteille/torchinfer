@@ -17,7 +17,10 @@ namespace torchinfer
     {
     public:
         Model();
+        void add(Layers<T> *layer);
         void load(const std::string &filename_onnx_ir, const bool &verbose);
+        void compile();
+
         void summary();
 
         Tensor<T> predict(Tensor<T> &x);
@@ -27,6 +30,12 @@ namespace torchinfer
 
     template <typename T>
     Model<T>::Model() {}
+
+    template <typename T>
+    void Model<T>::add(Layers<T> *layer)
+    {
+        layers.push_back(std::unique_ptr<Layers<T>>(layer));
+    }
 
     template <typename T>
     void Model<T>::load(const std::string &filename_onnx_ir, const bool &verbose)
@@ -91,17 +100,16 @@ namespace torchinfer
             if (op_type == static_cast<int>(OPTYPE::INPUT))
             {
                 auto dims_input = read_vector_from_stream<int>(file, 4, "dims_input");
-                auto layer = Inputs<T>(name, dims_input);
 
                 if (verbose)
                 {
                     spdlog::info("Op type: INPUT");
                     spdlog::info("\t- dims (input):");
-                    for (auto elt : layer.dims)
+                    for (auto elt : dims_input)
                         spdlog::info("\t\t {}", elt);
                 }
 
-                this->layers.push_back(std::make_unique<Inputs<T>>(layer));
+                this->add(new Inputs<T>(name, dims_input));
             }
             else if (op_type == static_cast<int>(OPTYPE::CONV2D))
             {
@@ -141,41 +149,44 @@ namespace torchinfer
                         spdlog::info("\t\t ...");
                     }
 
-                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights), Tensor<T>(bias, dims_bias), strides);
-                    this->layers.push_back(std::make_unique<Conv2D<T>>(layer));
+                    this->add(new Conv2D<T>(name, Tensor<T>(weights, dim_weights), Tensor<T>(bias, dims_bias), strides));
                 }
                 else
                 {
-                    auto layer = Conv2D<T>(name, Tensor<T>(weights, dim_weights), strides);
-                    this->layers.push_back(std::make_unique<Conv2D<T>>(layer));
+                    this->add(new Conv2D<T>(name, Tensor<T>(weights, dim_weights), strides));
                 }
             }
             else
                 throw std::runtime_error("model.load: Layer not implemented yet");
         }
+    }
 
+    template <typename T>
+    void Model<T>::compile()
+    {
         // Setup layers output dims/data of layers
         auto ptr = this->layers[0].get();
 
         for (int i = 1; i < static_cast<int>(this->layers.size()); i++)
         {
-            if (auto layer = dynamic_cast<Conv2D<T>*>(this->layers[i].get()))
+            if (auto layer = dynamic_cast<Conv2D<T> *>(this->layers[i].get()))
             {
-                int batch,  height, width;
+                int batch, height, width;
 
-                if (auto prev_layer = dynamic_cast<Inputs<T>*>(ptr)) {
+                if (auto prev_layer = dynamic_cast<Inputs<T> *>(ptr))
+                {
                     batch = prev_layer->dims[0];
                     height = prev_layer->dims[2];
                     width = prev_layer->dims[3];
                 }
-                else if (auto prev_layer = dynamic_cast<Conv2D<T>*>(ptr)) {
+                else if (auto prev_layer = dynamic_cast<Conv2D<T> *>(ptr))
+                {
                     batch = prev_layer->out.dims[0];
                     height = prev_layer->out.dims[2];
                     width = prev_layer->out.dims[3];
                 }
                 else
                     throw std::runtime_error("model.load: Layer not implemented yet");
-
 
                 int nb_filters = layer->weights.dims[0];
                 int kernel_height = layer->weights.dims[2];

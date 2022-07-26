@@ -11,7 +11,7 @@ namespace torchinfer
     class Inputs : public Layers<T>
     {
     public:
-        Inputs(std::string &name_arg, std::vector<int> &dims_arg);
+        Inputs(std::string name_arg, std::vector<int> dims_arg);
 
         std::string info() override;
         Tensor<T> forward(Tensor<T> &x) override;
@@ -21,7 +21,7 @@ namespace torchinfer
     };
 
     template <typename T>
-    Inputs<T>::Inputs(std::string &name_arg, std::vector<int> &dims_arg)
+    Inputs<T>::Inputs(std::string name_arg, std::vector<int> dims_arg)
         : name(name_arg),
           dims(dims_arg)
     {

@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
         auto x = torchinfer::read_numpy_binary<int>(filename_input, data_type);
         auto model = torchinfer::Model<int>();
         model.load(filename_onnx_ir, verbose);
+        model.compile();
         
         if (verbose)
             model.summary();
@@ -75,6 +76,7 @@ int main(int argc, char *argv[])
         auto x = torchinfer::read_numpy_binary<float>(filename_input, data_type);
         auto model = torchinfer::Model<float>();
         model.load(filename_onnx_ir, verbose);
+        model.compile();
 
         if (verbose)
             model.summary();
@@ -93,6 +95,7 @@ int main(int argc, char *argv[])
         auto x = torchinfer::read_numpy_binary<double>(filename_input, data_type);
         auto model = torchinfer::Model<double>();
         model.load(filename_onnx_ir, verbose);
+        model.compile();
 
         if (verbose)
             model.summary();
