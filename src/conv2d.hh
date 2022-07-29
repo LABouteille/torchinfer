@@ -56,40 +56,40 @@ namespace torchinfer
     Tensor<T> Conv2D<T>::forward(Tensor<T> &x)
     {
         // TODO: stride + padding (C++ and Python converter)
-        int batch = x.dims[0];
-        int channel = x.dims[1];
-        int height = x.dims[2];
-        int width = x.dims[3];
+        unsigned int batch = x.dims[0];
+        unsigned int channel = x.dims[1];
+        unsigned int height = x.dims[2];
+        unsigned int width = x.dims[3];
 
-        int kernel_height = weights.dims[2];
-        int kernel_width = weights.dims[3];
+        unsigned int kernel_height = weights.dims[2];
+        unsigned int kernel_width = weights.dims[3];
 
         //TODO: Implement padding
-        int nb_filters = weights.dims[0];
-        int out_height = std::floor(((height - kernel_height) / strides[0]) + 1);
-        int out_width = std::floor(((width - kernel_width) / strides[1]) + 1);
+        unsigned int nb_filters = weights.dims[0];
+        unsigned int out_height = std::floor(((height - kernel_height) / strides[0]) + 1);
+        unsigned int out_width = std::floor(((width - kernel_width) / strides[1]) + 1);
 
-        for (int n = 0; n < batch; n++)
+        for (unsigned int n = 0; n < batch; n++)
         {
             auto batch_offset_x = n * (width * height * channel);
             auto batch_offset_out = n * (out_width * out_height * nb_filters);
 
-            for (int f = 0; f < nb_filters; f++)
+            for (unsigned int f = 0; f < nb_filters; f++)
             {
                 auto filter_offset_kernel = f * (kernel_width * kernel_height * weights.dims[1]);
                 auto filter_offset_out = f * (out_width * out_height);
 
-                for (int i = 0; i < out_height; i+=1)
+                for (unsigned int i = 0; i < out_height; i+=1)
                 {
-                    for (int j = 0; j < out_width; j+=1)
+                    for (unsigned int j = 0; j < out_width; j+=1)
                     {
                         T val = 0;
 
-                        for (int k_i = 0; k_i < kernel_height; k_i++)
+                        for (unsigned int k_i = 0; k_i < kernel_height; k_i++)
                         {
-                            for (int k_j = 0; k_j < kernel_width; k_j++)
+                            for (unsigned int k_j = 0; k_j < kernel_width; k_j++)
                             {
-                                for (int c = 0; c < channel; c++)
+                                for (unsigned int c = 0; c < channel; c++)
                                 {
                                     auto channel_offset_x = c * (width * height);
                                     auto channel_offset_kernel = c * (kernel_width * kernel_height);

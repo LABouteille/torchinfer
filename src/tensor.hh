@@ -9,7 +9,7 @@ namespace torchinfer
     {
     public:
         Tensor() = default;
-        Tensor(std::vector<T> &data_arg, std::vector<int> dims_arg);
+        Tensor(std::vector<T> &data_arg, std::vector<unsigned int> dims_arg);
 
         T &operator[](int idx);      // Writing
         T operator[](int idx) const; // Reading
@@ -17,11 +17,11 @@ namespace torchinfer
         std::string to_string() const;
 
         std::vector<T> data;
-        std::vector<int> dims;
+        std::vector<unsigned int> dims;
     };
 
     template <typename T>
-    Tensor<T>::Tensor(std::vector<T> &data_arg, std::vector<int> dims_arg)
+    Tensor<T>::Tensor(std::vector<T> &data_arg, std::vector<unsigned int> dims_arg)
         : data(data_arg),
           dims(dims_arg)
     {
@@ -42,22 +42,22 @@ namespace torchinfer
     template <typename T>
     std::string Tensor<T>::to_string() const
     {
-        int batch = this->dims[0];
-        int channel = this->dims[1];
-        int height = this->dims[2];
-        int width = this->dims[3];
+        unsigned int batch = this->dims[0];
+        unsigned int channel = this->dims[1];
+        unsigned int height = this->dims[2];
+        unsigned int width = this->dims[3];
         
         std::stringstream ss;
         
         ss << std::endl;
 
-        for (int n = 0; n < batch; n++)
+        for (unsigned int n = 0; n < batch; n++)
         {
-            for (int c = 0; c < channel; c++)
+            for (unsigned int c = 0; c < channel; c++)
             {
-                for (int i = 0; i < height; i++)
+                for (unsigned int i = 0; i < height; i++)
                 {
-                    for (int j = 0; j < width; j++)
+                    for (unsigned int j = 0; j < width; j++)
                     {
                         ss << this->data[n * channel * height * width + c * height * width + i * width + j] << " ";
                     }

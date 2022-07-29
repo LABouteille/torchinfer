@@ -32,10 +32,10 @@ def write_bin(filename, array):
     fmt = dtype_to_format[array.dtype.type]
     n, c, h, w = array.shape
     with open(filename, "wb") as f:
-        f.write(struct.pack('i', n))
-        f.write(struct.pack('i', c))
-        f.write(struct.pack('i', h))
-        f.write(struct.pack('i', w))
+        f.write(struct.pack('I', n))
+        f.write(struct.pack('I', c))
+        f.write(struct.pack('I', h))
+        f.write(struct.pack('I', w))
         f.write(struct.pack('c', bytes(fmt, 'utf-8')))
         f.write(struct.pack(f"{fmt}"*(n*c*h*w), *array.flatten(order="C").tolist()))
 
@@ -57,7 +57,7 @@ def read_bin(filename):
         if byte == b'':
             raise Exception("read_bin: Empty binary")
         else:
-            dims = struct.unpack('iiii', byte)
+            dims = struct.unpack('IIII', byte)
         
         if len(dims) != 4: raise Exception("read_bin: No dimensions (n,c,h,w) dumped in binary")
 

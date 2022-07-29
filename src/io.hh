@@ -16,10 +16,10 @@ namespace torchinfer
          * Reads a numpy binary file (dumped with write_bin()) and returns a vector of type T.
          *
          * File format:
-         *    - n (int)
-         *    - c (int)
-         *    - h (int)
-         *    - w (int)
+         *    - n (unsigned int)
+         *    - c (unsigned int)
+         *    - h (unsigned int)
+         *    - w (unsigned int)
          *    - format [int, float, double] (byte)
          *    - data
          *
@@ -42,13 +42,13 @@ namespace torchinfer
             throw std::runtime_error("read_numpy_binary: file not opened");
 
         // Dimensions
-        int n = -1, c = -1, h = -1, w = -1;
-        file.read(reinterpret_cast<char *>(&n), sizeof(int));
-        file.read(reinterpret_cast<char *>(&c), sizeof(int));
-        file.read(reinterpret_cast<char *>(&h), sizeof(int));
-        file.read(reinterpret_cast<char *>(&w), sizeof(int));
+        unsigned int n = 0, c = 0, h = 0, w = 0;
+        file.read(reinterpret_cast<char *>(&n), sizeof(unsigned int));
+        file.read(reinterpret_cast<char *>(&c), sizeof(unsigned int));
+        file.read(reinterpret_cast<char *>(&h), sizeof(unsigned int));
+        file.read(reinterpret_cast<char *>(&w), sizeof(unsigned int));
 
-        if (n == -1 || c == -1 || h == -1 || w == -1)
+        if (n == 0 || c == 0 || h == 0 || w == 0)
             throw std::runtime_error("read_numpy_binary: No dimensions (n,c,h,w) dumped in binary");
 
         // Format
@@ -146,7 +146,7 @@ namespace torchinfer
     }
 
     template <typename T>
-    std::vector<T> read_raw_data_from_stream(std::ifstream &file, std::vector<int> &dims, std::string param_name)
+    std::vector<T> read_raw_data_from_stream(std::ifstream &file, std::vector<unsigned int> &dims, std::string param_name)
     {
         // Read weight/bias from an already open file stream.
 

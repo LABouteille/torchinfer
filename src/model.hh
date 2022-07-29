@@ -99,7 +99,7 @@ namespace torchinfer
 
             if (op_type == static_cast<int>(OPTYPE::INPUT))
             {
-                auto dims_input = read_vector_from_stream<int>(file, 4, "dims_input");
+                auto dims_input = read_vector_from_stream<unsigned int>(file, 4, "dims_input");
 
                 if (verbose)
                 {
@@ -114,7 +114,7 @@ namespace torchinfer
             else if (op_type == static_cast<int>(OPTYPE::CONV2D))
             {
                 auto nb_params = read_scalar_from_stream<int>(file, "nb_params");
-                auto dim_weights = read_vector_from_stream<int>(file, 4, "dim_weights");
+                auto dim_weights = read_vector_from_stream<unsigned int>(file, 4, "dim_weights");
                 auto weights = read_raw_data_from_stream<T>(file, dim_weights, "weights");
                 auto strides = read_vector_from_stream<int>(file, 2, "strides");
                 if (verbose)
@@ -135,7 +135,7 @@ namespace torchinfer
 
                 if (nb_params == 2)
                 {
-                    auto dims_bias = read_vector_from_stream<int>(file, 1, "dims_bias");
+                    auto dims_bias = read_vector_from_stream<unsigned int>(file, 1, "dims_bias");
                     auto bias = read_raw_data_from_stream<T>(file, dims_bias, "bias");
 
                     if (verbose)
@@ -171,7 +171,7 @@ namespace torchinfer
         {
             if (auto layer = dynamic_cast<Conv2D<T> *>(this->layers[i].get()))
             {
-                int batch, height, width;
+                unsigned int batch, height, width;
 
                 if (auto prev_layer = dynamic_cast<Inputs<T> *>(ptr))
                 {
@@ -188,12 +188,12 @@ namespace torchinfer
                 else
                     throw std::runtime_error("model.compile: Layer not implemented yet");
 
-                int nb_filters = layer->weights.dims[0];
-                int kernel_height = layer->weights.dims[2];
-                int kernel_width = layer->weights.dims[3];
+                unsigned int nb_filters = layer->weights.dims[0];
+                unsigned int kernel_height = layer->weights.dims[2];
+                unsigned int kernel_width = layer->weights.dims[3];
 
-                int out_height = std::floor(((height - kernel_height) / layer->strides[0]) + 1);
-                int out_width = std::floor(((width - kernel_width) / layer->strides[1]) + 1);
+                unsigned int out_height = std::floor(((height - kernel_height) / layer->strides[0]) + 1);
+                unsigned int out_width = std::floor(((width - kernel_width) / layer->strides[1]) + 1);
 
                 layer->out.dims = {batch, nb_filters, out_height, out_width};
                 layer->out.data.assign(batch * nb_filters * out_height * out_width, (T)0);
